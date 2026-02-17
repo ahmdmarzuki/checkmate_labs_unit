@@ -12,7 +12,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(HW_IF_INCLUDE_DEPENDS
   pluginlib
   rcpputils
-  # hardware_interface
+  hardware_interface
 )
 set(REF_GEN_INCLUDE_DEPENDS
   kdl_parser
@@ -40,29 +40,25 @@ foreach(Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+# COMPILE
+add_executable(send_trajectory reference_generator/send_trajectory.cpp)
 
-## COMPILE
-# add_executable(send_trajectory reference_generator/send_trajectory.cpp)
-
-# ament_target_dependencies(
-#   send_trajectory PUBLIC
-#   ${REF_GEN_INCLUDE_DEPENDS}
-# )
+ament_target_dependencies(
+  send_trajectory PUBLIC
+  ${REF_GEN_INCLUDE_DEPENDS}
+)
 
 add_library(
   ${PROJECT_NAME}
   SHARED
-  # hardware/r6bot_hardware.cpp
-  # controller/r6bot_controller.cpp
+  hardware/r6bot_hardware.cpp
+  controller/r6bot_controller.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${PROJECT_NAME} PUBLIC
-# $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
-# $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/controller/include>
+$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
+$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/controller/include>
 $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 ament_target_dependencies(
@@ -72,9 +68,9 @@ ament_target_dependencies(
 )
 
 # Export hardware plugins
-# pluginlib_export_plugin_description_file(hardware_interface ros2_control_demo_example_7.xml)
+pluginlib_export_plugin_description_file(hardware_interface clu.xml)
 # Export controller plugins
-# pluginlib_export_plugin_description_file(controller_interface ros2_control_demo_example_7.xml)
+pluginlib_export_plugin_description_file(controller_interface clu.xml)
 
 
 # INSTALL
@@ -90,10 +86,10 @@ install(
   DIRECTORY bringup/launch bringup/config
   DESTINATION share/${PROJECT_NAME}
 )
-# install(
-#     TARGETS send_trajectory
-#     RUNTIME DESTINATION lib/${PROJECT_NAME}
-# )
+install(
+    TARGETS send_trajectory
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 install(TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
@@ -114,6 +110,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_export_targets(CLU_01 HAS_LIBRARY_TARGET)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${HW_IF_INCLUDE_DEPENDS} ${REF_GEN_INCLUDE_DEPENDS} ${CONTROLLER_INCLUDE_DEPENDS})
 ament_package()
